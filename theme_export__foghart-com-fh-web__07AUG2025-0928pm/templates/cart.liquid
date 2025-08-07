@@ -1,0 +1,222 @@
+<style>
+:root {
+  --accent-green: #60bb46;
+}
+
+@font-face {
+  font-family: 'CustomFont';
+  src: url('{{ 'your-font.woff2' | asset_url }}') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'CustomFont', monospace;
+}
+
+.cart__container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.cart__item {
+  display: flex;
+  align-items: stretch;
+  gap: 2rem;
+  padding: 2rem 0;
+  border-top: 1px solid #e0e0e0;
+  font-size: 14px;
+  flex-wrap: nowrap;
+}
+
+.cart__item-img {
+  width: auto;
+  height: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cart__item-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.cart__item-title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.cart__item-vendor,
+.cart__item-size,
+.cart__item-price {
+  margin-bottom: 0.2rem;
+}
+
+.cart__item-remove {
+  color: black;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.cart__item-remove:hover {
+  color: var(--accent-green);
+}
+
+.cart__quantity-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.cart__quantity-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.cart__quantity-btn:hover {
+  color: var(--accent-green);
+}
+
+.cart__quantity-value {
+  min-width: 1rem;
+  text-align: center;
+}
+
+.cart__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cart__total {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.cart__checkout-btn {
+  background: black;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  text-transform: uppercase;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cart__checkout-btn:hover {
+  background: var(--accent-green);
+}
+
+/* 🛒 Košík animácia (pravý horný roh) */
+.header-cart:hover {
+  transform: scale(1.15);
+  transition: transform 0.2s ease;
+}
+
+/* 📱 MOBILNÁ VERZIA */
+@media screen and (max-width: 749px) {
+  .cart__item {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .cart__item-img {
+    width: 80px;
+    height: auto;
+    max-height: 120px;
+  }
+
+  .cart__item-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cart__item-title {
+    font-size: 13px;
+  }
+
+  .cart__quantity-wrapper {
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .cart__footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .cart__checkout-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+</style>
+
+<div class="cart__container">
+  {% if cart.item_count != 0 %}
+    <form action="{{ routes.cart_url }}" method="post">
+      {% for item in cart.items %}
+        <div class="cart__item">
+          <img class="cart__item-img" src="{{ item.image | img_url: '300x' }}" alt="{{ item.title }}">
+          <div class="cart__item-text">
+            <div>
+              <div class="cart__item-vendor">{{ item.vendor }}</div>
+              <div class="cart__item-title">{{ item.product.title }}</div>
+              <div class="cart__item-size">Size: {{ item.variant.title }}</div>
+              <div class="cart__item-price">{{ item.final_price | money_with_currency }}</div>
+            </div>
+            <div class="cart__quantity-wrapper">
+              <span>Qty:</span>
+              <button class="cart__quantity-btn" type="button" onclick="changeQty('{{ item.key }}', {{ item.quantity | minus: 1 }})">−</button>
+              <span class="cart__quantity-value" id="qty-{{ item.key }}">{{ item.quantity }}</span>
+              <button class="cart__quantity-btn" type="button" onclick="changeQty('{{ item.key }}', {{ item.quantity | plus: 1 }})">+</button>
+              <a class="cart__item-remove" href="{{ item.url_to_remove }}">Remove</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div class="cart__footer">
+        <div class="cart__total">Total: {{ cart.total_price | money_with_currency }}</div>
+        <input class="cart__checkout-btn" type="submit" name="checkout" value="Checkout">
+      </div>
+    </form>
+  {% else %}
+    <div style="text-align: center; padding: 100px 20px;">
+      <img src="{{ 'empty-cart.png' | asset_url }}" alt="Empty cart" style="max-width: 300px; width: 100%;">
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  function changeQty(key, qty) {
+    if (qty < 1) return;
+    fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: key, quantity: qty })
+    }).then(() => location.reload());
+  }
+</script>

@@ -1,0 +1,355 @@
+<style>
+  /* Základné štýly pre header na všetkých zariadeniach */
+  .header-wrapper {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 10px 20px;
+  }
+  
+  /* Pridáme margin-top pre body aby sa obsah nezakryl */
+  body {
+    padding-top: 80px;
+  }
+  .header-wrapper > * {
+    text-align: center;
+  }
+  
+  /* ZMENA: Nová štruktúra pre ľavú stranu s account + menu */
+  .left-nav {
+    flex-grow: 1;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 20px;
+  }
+  
+  .account {
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+  
+  /* Hover efekt pre Account */
+  .account:hover {
+    transform: scale(1.1);
+  }
+  
+  .header-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .logo-wrapper {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 5px; /* Menší padding */
+    z-index: 10;
+  }
+  
+  .right-nav {
+    flex-grow: 1;
+    text-align: right;
+    white-space: nowrap;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end !important;
+  }
+  
+  .header-menu .menu-item {
+    text-transform: uppercase;
+    font-size: 16px;
+  }
+  
+  .logo-wrapper img {
+    width: {{ section.settings.logo-size }}px;
+    max-width: 100%;
+  }
+  
+  .cart-icon {
+    height: 60px;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+  }
+  
+  /* Hover efekt pre košík */
+  .cart-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .submenu {
+    display: none;
+    position: absolute;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    background: {{ settings.submenu-bg }};
+    z-index: 100;
+    left: 0;
+    margin-top: 10px;
+    flex-direction: column;
+    padding: 0;
+    min-width: 150px;
+  }
+  .subsub-menu-item {
+    padding-top: 0 !important;
+    font-size: 13px;
+  }
+  .submenu a {
+    padding: 10px;
+    display: block;
+    text-decoration: none;
+    text-align: center;
+  }
+  .has-children {
+    position: relative;
+  }
+  .has-children > a:after {
+    content: ' +';
+  }
+  .has-children.active > a:after {
+    content: ' -';
+  }
+  .burger-menu {
+    cursor: pointer;
+    display: none;
+    position: relative;
+    z-index: 997;
+  }
+  .account-mobile {
+      display: none;
+  }
+
+  /* Štýly pre mobilné zariadenia */
+  @media screen and (max-width: 749px) {
+    .header-wrapper {
+      justify-content: space-between !important;
+      padding: 5px 10px; /* Menší padding aby neboli na krajoch */
+      margin-top: 10px;
+    }
+    
+    /* ZMENA: Account zostáva vľavo aj na mobile */
+    .left-nav {
+      flex-grow: 1;
+      justify-content: flex-start;
+      gap: 8px; /* Menší gap na mobile */
+      padding-left: 5px; /* Malé odsadenie od kraja */
+    }
+    
+    .account {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .header-menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px; /* Menší gap medzi menu položkami */
+    }
+    
+    .burger-menu {
+      display: none;
+    }
+    
+    .logo-wrapper {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 10;
+        padding: 5px;
+    }
+    .right-nav {
+      flex-grow: 0;
+      justify-content: flex-end;
+      padding-right: 5px; /* Malé odsadenie od kraja */
+    }
+    .account-mobile {
+      display: none; /* Nepotrebujeme mobile verziu */
+    }
+    .cart-icon {
+      height: 35px; /* Menšia ikona košíka */
+    }
+    .header-menu .menu-item {
+      text-transform: uppercase;
+      font-size: 12px; /* Menší font pre mobile menu */
+      text-align: center;
+    }
+    .submenu {
+      z-index: 100;
+      position: absolute;
+      background: {{ settings.submenu-bg }};
+      box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    }
+    .submenu a {
+      font-size: 11px; /* Menší font pre submenu na mobile */
+    }
+    .subsub-menu-item {
+      font-size: 10px !important;
+    }
+  }
+
+  /* Štýly pre mobilné logo na menších displejoch */
+  @media screen and (max-width: 500px) {
+    .logo-wrapper img {
+      width: {{ section.settings.logo-size-mobile }}px;
+    }
+  }
+</style>
+
+<div class="page-width">
+  <div class="header-wrapper">
+
+    <!-- ZMENA: Ľavá sekcia s account + navigácia (bez burger menu) -->
+    <div class="left-nav">
+      <!-- Account link - staticky vľavo na všetkých zariadeniach -->
+      {% if shop.customer_accounts_enabled %}
+        <a class="account" href="/account">Account</a>
+      {% endif %}
+
+      <div class="header-menu">
+        {% if section.settings.menu %}
+          {% for link in linklists[section.settings.menu].links %}
+          <div class="menu-item{% if link.links.size > 0 %} has-children{% endif %}">
+            <a href="{{ link.url }}" class="menu-link">{{ link.title }}</a>
+            {% if link.links.size > 0 %}
+              <div class="submenu">
+                {% for childlink in link.links %}
+                  <a href="{{ childlink.url }}">{{ childlink.title }}</a>
+                  {% if childlink.links.size > 0 %}
+                    {% for subchildlink in childlink.links %}
+                      <span>
+                        <a class="subsub-menu-item" href="{{ subchildlink.url }}">{{ subchildlink.title }}</a>
+                      </span>
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="logo-wrapper">
+      <a href="{{ routes.root_url }}" class="header__heading-link">
+        {% if section.settings.logo != blank %}
+          <img class="header-logo" src="{{ section.settings.logo | img_url: 'master' }}" alt="{{ shop.name }}" loading="eager">
+        {% else %}
+          <span class="header-logo-text">{{ shop.name }}</span>
+        {% endif %}
+      </a>
+    </div>
+
+    <!-- ZMENA: Pravá strana teraz obsahuje len košík -->
+    <div class="right-nav">
+      <a href="/cart">
+        <img src="{{ 'cart-icon.svg' | asset_url }}" alt="Cart" class="cart-icon">
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var burgerMenu = document.querySelector('.burger-menu');
+    var headerMenu = document.querySelector('.header-menu');
+    var burgerIcon = document.querySelector('.burger');
+    var crossIcon = document.querySelector('.cross');
+    var body = document.querySelector('body');
+
+    burgerMenu.addEventListener('click', function() {
+      var isOpen = headerMenu.classList.contains('active');
+      headerMenu.classList.toggle('active');
+      if (isOpen) {
+        burgerIcon.style.display = 'block';
+        crossIcon.style.display = 'none';
+        body.style.overflow = 'inherit';
+      } else {
+        burgerIcon.style.display = 'none';
+        crossIcon.style.display = 'block';
+        body.style.overflow = 'hidden';
+      }
+    });
+
+    var menuItems = document.querySelectorAll('.header-menu > .menu-item');
+    menuItems.forEach(function(item) {
+      var link = item.querySelector('.menu-link');
+      link.addEventListener('click', function(event) {
+        if (item.classList.contains('has-children')) {
+          event.preventDefault();
+          var active = document.querySelector('.menu-item.active');
+          if (active && active !== item) {
+            active.classList.remove('active');
+            active.querySelector('.submenu').style.display = 'none';
+          }
+          var submenu = item.querySelector('.submenu');
+          submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+          item.classList.toggle('active');
+        }
+      });
+    });
+
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.menu-item')) {
+        var submenus = document.querySelectorAll('.submenu');
+        submenus.forEach(function(submenu) {
+          submenu.style.display = 'none';
+        });
+        var activeItems = document.querySelectorAll('.menu-item.active');
+        activeItems.forEach(function(item) {
+          item.classList.remove('active');
+        });
+      }
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo"
+    },
+    {
+      "type": "range",
+      "id": "logo-size",
+      "min": 50,
+      "max": 400,
+      "step": 5,
+      "default": 150,
+      "unit": "px",
+      "label": "Logo size"
+    },
+    {
+      "type": "range",
+      "id": "logo-size-mobile",
+      "min": 50,
+      "max": 300,
+      "step": 5,
+      "default": 100,
+      "unit": "px",
+      "label": "Mobile logo size"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Header menu"
+    }
+  ]
+}
+{% endschema %}

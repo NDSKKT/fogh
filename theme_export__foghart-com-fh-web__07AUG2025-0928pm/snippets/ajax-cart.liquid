@@ -1,0 +1,50 @@
+<div id="AjaxCart" class="ajax-cart">
+  <div class="ajax-cart__inner">
+    <header class="ajax-cart__header">
+      <h2 class="ajax-cart__title">Váš košík</h2>
+      <button class="ajax-cart__close" onclick="closeCart()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </header>
+
+    {% if cart.item_count > 0 %}
+      <div class="ajax-cart__items">
+        {% for item in cart.items %}
+          <div class="ajax-cart__item">
+            <a href="{{ item.url }}" class="ajax-cart__item-image-link">
+              <img src="{{ item | img_url: '100x100' }}" alt="{{ item.product.title | escape }}" class="ajax-cart__item-image">
+            </a>
+            <div class="ajax-cart__item-details">
+              <a href="{{ item.url }}" class="ajax-cart__item-title">{{ item.product.title }}</a>
+              <p class="ajax-cart__item-price">{{ item.final_price | money }}</p>
+              <div class="ajax-cart__item-quantity">
+                <input type="number"
+                       name="updates[]"
+                       value="{{ item.quantity }}"
+                       min="0"
+                       id="updates_{{ item.key }}"
+                       class="ajax-cart__quantity-input"
+                       data-line="{{ forloop.index }}">
+              </div>
+              <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="ajax-cart__item-remove-link">Odstrániť</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="ajax-cart__footer">
+        <div class="ajax-cart__subtotal">
+          <span>Medzisúčet:</span>
+          <span class="ajax-cart__total-price">{{ cart.total_price | money }}</span>
+        </div>
+        <a href="/checkout" class="button ajax-cart__checkout-btn">Pokladňa</a>
+        <a href="/cart" class="button ajax-cart__view-cart-btn">Prejsť do košíka</a>
+      </div>
+    {% else %}
+      <p class="ajax-cart__empty-text">Váš košík je prázdny.</p>
+    {% endif %}
+
+  </div>
+</div>
